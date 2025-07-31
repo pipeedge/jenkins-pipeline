@@ -52,12 +52,12 @@ class Calculator:
         if number < 0:
             logger.error("Square root of negative number attempted")
             raise ValueError("Cannot calculate square root of negative number")
-        result = number ** 0.5
+        result = float(number ** 0.5)
         logger.info(f"Square root: √{number} = {result}")
         return result
 
 
-def main():
+def main() -> None:
     """Main function to demonstrate calculator usage."""
     calc = Calculator()
     
