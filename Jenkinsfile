@@ -219,16 +219,33 @@ pipeline {
         success {
             echo 'Pipeline executed successfully!'
             
-            // Send success notification (configure as needed)
+            // Send success notification
             script {
-                if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master') {
-                    echo 'Sending success notification for main branch...'
-                    // emailext (
-                    //     subject: "SUCCESS: ${JOB_NAME} - Build #${BUILD_NUMBER}",
-                    //     body: "The pipeline executed successfully. Build details: ${BUILD_URL}",
-                    //     to: "${DEFAULT_RECIPIENTS}"
-                    // )
-                }
+                echo 'Sending success notification...'
+                emailext (
+                    subject: "SUCCESS: ${JOB_NAME} - Build #${BUILD_NUMBER}",
+                    body: """
+                        <h2>Pipeline Execution Successful!</h2>
+                        <p><strong>Job:</strong> ${JOB_NAME}</p>
+                        <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
+                        <p><strong>Branch:</strong> ${env.BRANCH_NAME ?: 'N/A'}</p>
+                        <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                        <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                        <br>
+                        <p>All stages completed successfully including:</p>
+                        <ul>
+                            <li>Code quality checks (Flake8, Black, MyPy)</li>
+                            <li>Security scan (Bandit)</li>
+                            <li>Unit tests with coverage</li>
+                            <li>Integration tests</li>
+                            <li>Build artifacts creation</li>
+                        </ul>
+                        <br>
+                        <p>This is an automated notification from Jenkins Pipeline.</p>
+                    """,
+                    to: "yuanliangyyy@gmail.com",
+                    mimeType: "text/html"
+                )
             }
         }
         
@@ -238,11 +255,33 @@ pipeline {
             // Send failure notification
             script {
                 echo 'Sending failure notification...'
-                // emailext (
-                //     subject: "FAILURE: ${JOB_NAME} - Build #${BUILD_NUMBER}",
-                //     body: "The pipeline failed. Please check the logs: ${BUILD_URL}",
-                //     to: "${DEFAULT_RECIPIENTS}"
-                // )
+                emailext (
+                    subject: "FAILURE: ${JOB_NAME} - Build #${BUILD_NUMBER}",
+                    body: """
+                        <h2>Pipeline Execution Failed!</h2>
+                        <p><strong>Job:</strong> ${JOB_NAME}</p>
+                        <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
+                        <p><strong>Branch:</strong> ${env.BRANCH_NAME ?: 'N/A'}</p>
+                        <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                        <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                        <br>
+                        <p><strong>Failed Stage:</strong> ${currentBuild.description ?: 'Unknown'}</p>
+                        <br>
+                        <p>Please check the Jenkins console output for detailed error information.</p>
+                        <p>Common failure points:</p>
+                        <ul>
+                            <li>Code quality checks (Flake8, Black, MyPy)</li>
+                            <li>Security scan (Bandit)</li>
+                            <li>Unit tests</li>
+                            <li>Integration tests</li>
+                            <li>Build artifacts creation</li>
+                        </ul>
+                        <br>
+                        <p>This is an automated notification from Jenkins Pipeline.</p>
+                    """,
+                    to: "yuanliangyyy@gmail.com",
+                    mimeType: "text/html"
+                )
             }
         }
         
