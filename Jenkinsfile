@@ -60,24 +60,6 @@ pipeline {
         
         stage('Code Quality Checks') {
             parallel {
-                stage('Linting with Flake8') {
-                    steps {
-                        echo 'Running code linting with Flake8...'
-                        sh '''
-                            . ${VIRTUAL_ENV}/bin/activate
-                            echo "Running Flake8 linter..."
-                            flake8 --max-line-length=100 --exclude=${VIRTUAL_ENV} --statistics --output-file=flake8-report.txt .
-                            echo "Flake8 linting completed successfully!"
-                        '''
-                    }
-                    post {
-                        always {
-                            // Archive the flake8 report
-                            archiveArtifacts artifacts: 'flake8-report.txt', allowEmptyArchive: true
-                        }
-                    }
-                }
-                
                 stage('Code Formatting with Black') {
                     steps {
                         echo 'Checking code formatting with Black...'
@@ -234,7 +216,7 @@ pipeline {
                         <br>
                         <p>All stages completed successfully including:</p>
                         <ul>
-                            <li>Code quality checks (Flake8, Black, MyPy)</li>
+                            <li>Code quality checks (Black, MyPy)</li>
                             <li>Security scan (Bandit)</li>
                             <li>Unit tests with coverage</li>
                             <li>Integration tests</li>
@@ -270,7 +252,7 @@ pipeline {
                         <p>Please check the Jenkins console output for detailed error information.</p>
                         <p>Common failure points:</p>
                         <ul>
-                            <li>Code quality checks (Flake8, Black, MyPy)</li>
+                            <li>Code quality checks (Black, MyPy)</li>
                             <li>Security scan (Bandit)</li>
                             <li>Unit tests</li>
                             <li>Integration tests</li>

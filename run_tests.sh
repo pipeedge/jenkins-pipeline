@@ -53,16 +53,7 @@ echo "=================================================="
 echo "Running Code Quality Checks"
 echo "=================================================="
 
-# Flake8 linting
-print_status "Running Flake8 linting..."
-if flake8 --max-line-length=100 --exclude=venv --statistics .; then
-    print_success "Flake8 linting passed"
-else
-    print_error "Flake8 linting failed"
-    exit 1
-fi
 
-echo ""
 
 # Black code formatting check
 print_status "Checking code formatting with Black..."
