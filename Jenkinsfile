@@ -125,8 +125,8 @@ pipeline {
                     archiveArtifacts artifacts: 'htmlcov/**', allowEmptyArchive: true
                     archiveArtifacts artifacts: 'coverage.xml', allowEmptyArchive: true
                     
-                    // Publish coverage report (if Coverage plugin is installed)
-                    publishCoverage adapters: [coberturaAdapter('coverage.xml')], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                    // Note: Coverage publishing disabled - Cobertura plugin not available
+                    // publishCoverage adapters: [coberturaAdapter('coverage.xml')], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
                 }
             }
         }
