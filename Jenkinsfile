@@ -195,12 +195,70 @@ pipeline {
         always {
             echo 'Pipeline execution completed!'
             
-            // Clean up workspace (optional)
-            // cleanWs()
+            // Run the calculator application
+            echo 'Running calculator application...'
+            sh '''
+                . ${VIRTUAL_ENV}/bin/activate
+                echo "=== Calculator Application Demo ==="
+                python calculator.py
+                echo "=== Application execution completed ==="
+            '''
+            
+            // Generate test reports
+            echo 'Generating test reports...'
+            sh '''
+                . ${VIRTUAL_ENV}/bin/activate
+                echo "=== Generating Test Reports ==="
+                
+                # Generate HTML test report
+                pytest --html=test_report.html --self-contained-html test_calculator.py || true
+                
+                # Generate coverage report
+                pytest --cov=calculator --cov-report=html --cov-report=term-missing test_calculator.py || true
+                
+                # Generate performance report
+                echo "=== Performance Test ===" > performance_report.txt
+                python -c "
+import time
+from calculator import Calculator
+calc = Calculator()
+start_time = time.time()
+for i in range(1000):
+    calc.add(i, i)
+end_time = time.time()
+print(f'Performance: 1000 additions in {end_time - start_time:.4f} seconds')
+" >> performance_report.txt
+                
+                echo "=== Reports generated successfully ==="
+            '''
+            
+            // Archive reports
+            archiveArtifacts artifacts: 'test_report.html,performance_report.txt,htmlcov/**', allowEmptyArchive: true
+            
+            // Clean up workspace
+            sh '''
+                echo "=== Cleaning up workspace ==="
+                rm -rf __pycache__
+                rm -rf .pytest_cache
+                rm -f *.pyc
+                echo "=== Cleanup completed ==="
+            '''
         }
         
         success {
             echo 'Pipeline executed successfully!'
+            
+            // Generate success summary report
+            sh '''
+                echo "=== Build Success Summary ===" > build_summary.txt
+                echo "Job: ${JOB_NAME}" >> build_summary.txt
+                echo "Build Number: ${BUILD_NUMBER}" >> build_summary.txt
+                echo "Build URL: ${BUILD_URL}" >> build_summary.txt
+                echo "Duration: ${currentBuild.durationString}" >> build_summary.txt
+                echo "Status: SUCCESS" >> build_summary.txt
+                echo "All stages completed successfully!" >> build_summary.txt
+            '''
+            archiveArtifacts artifacts: 'build_summary.txt', allowEmptyArchive: true
             
             // Send success notification
             script {
@@ -221,6 +279,16 @@ pipeline {
                             <li>Unit tests with coverage</li>
                             <li>Integration tests</li>
                             <li>Build artifacts creation</li>
+                            <li>Application execution</li>
+                            <li>Report generation</li>
+                        </ul>
+                        <br>
+                        <p>Reports available in build artifacts:</p>
+                        <ul>
+                            <li>Test Report (HTML)</li>
+                            <li>Coverage Report (HTML)</li>
+                            <li>Performance Report</li>
+                            <li>Build Summary</li>
                         </ul>
                         <br>
                         <p>This is an automated notification from Jenkins Pipeline.</p>
@@ -233,6 +301,18 @@ pipeline {
         
         failure {
             echo 'Pipeline execution failed!'
+            
+            // Generate failure report
+            sh '''
+                echo "=== Build Failure Report ===" > failure_report.txt
+                echo "Job: ${JOB_NAME}" >> failure_report.txt
+                echo "Build Number: ${BUILD_NUMBER}" >> failure_report.txt
+                echo "Build URL: ${BUILD_URL}" >> failure_report.txt
+                echo "Duration: ${currentBuild.durationString}" >> failure_report.txt
+                echo "Status: FAILED" >> failure_report.txt
+                echo "Failed at: $(date)" >> failure_report.txt
+            '''
+            archiveArtifacts artifacts: 'failure_report.txt', allowEmptyArchive: true
             
             // Send failure notification
             script {
@@ -256,11 +336,13 @@ pipeline {
                             <li>Unit tests</li>
                             <li>Integration tests</li>
                             <li>Build artifacts creation</li>
+                            <li>Application execution</li>
+                            <li>Report generation</li>
                         </ul>
                         <br>
                         <p>This is an automated notification from Jenkins Pipeline.</p>
                     """,
-                    to: "yuanliangyyy@gmail.com",
+                    to: "yuanliang531@outlook.com",
                     mimeType: "text/html"
                 )
             }
