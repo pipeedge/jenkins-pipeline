@@ -57,10 +57,10 @@ echo "=================================================="
 
 # Black code formatting check
 print_status "Checking code formatting with Black..."
-if black --check --line-length=100 --exclude=venv --exclude=.venv --exclude=__pycache__ .; then
+if black --check --line-length=100 calculator.py test_calculator.py; then
     print_success "Code formatting check passed"
 else
-    print_warning "Code needs formatting. Run 'black --line-length=100 --exclude=venv --exclude=.venv --exclude=__pycache__ .' to fix"
+    print_warning "Code needs formatting. Run 'black --line-length=100 calculator.py test_calculator.py' to fix"
     # Don't exit on formatting issues, just warn
 fi
 

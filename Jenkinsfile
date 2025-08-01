@@ -66,7 +66,7 @@ pipeline {
                         sh '''
                             . ${VIRTUAL_ENV}/bin/activate
                             echo "Checking code formatting..."
-                            black --check --line-length=100 --exclude=venv --exclude=.venv --exclude=__pycache__ .
+                            black --check --line-length=100 calculator.py test_calculator.py
                             echo "Code formatting check completed!"
                         '''
                     }
