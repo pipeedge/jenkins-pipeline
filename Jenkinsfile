@@ -86,24 +86,25 @@ pipeline {
             }
         }
         
-        stage('Security Scan') {
-            steps {
-                echo 'Running security scan with Bandit...'
-                sh '''
-                    . ${VIRTUAL_ENV}/bin/activate
-                    echo "Running Bandit security scan..."
-                    bandit -r . -f json -o bandit-report.json --exclude ${VIRTUAL_ENV} || true
-                    bandit -r . --exclude ${VIRTUAL_ENV}
-                    echo "Security scan completed!"
-                '''
-            }
-            post {
-                always {
-                    // Archive the security report
-                    archiveArtifacts artifacts: 'bandit-report.json', allowEmptyArchive: true
-                }
-            }
-        }
+        // Security Scan stage disabled as requested
+        // stage('Security Scan') {
+        //     steps {
+        //         echo 'Running security scan with Bandit...'
+        //         sh '''
+        //             . ${VIRTUAL_ENV}/bin/activate
+        //             echo "Running Bandit security scan..."
+        //             bandit -r . -f json -o bandit-report.json --exclude ${VIRTUAL_ENV} || true
+        //             bandit -r . --exclude ${VIRTUAL_ENV}
+        //             echo "Security scan completed!"
+        //         '''
+        //     }
+        //     post {
+        //         always {
+        //             // Archive the security report
+        //             archiveArtifacts artifacts: 'bandit-report.json', allowEmptyArchive: true
+        //         }
+        //     }
+        // }
         
         stage('Unit Tests') {
             steps {
@@ -217,7 +218,6 @@ pipeline {
                         <p>All stages completed successfully including:</p>
                         <ul>
                             <li>Code quality checks (Black, MyPy)</li>
-                            <li>Security scan (Bandit)</li>
                             <li>Unit tests with coverage</li>
                             <li>Integration tests</li>
                             <li>Build artifacts creation</li>
@@ -253,7 +253,6 @@ pipeline {
                         <p>Common failure points:</p>
                         <ul>
                             <li>Code quality checks (Black, MyPy)</li>
-                            <li>Security scan (Bandit)</li>
                             <li>Unit tests</li>
                             <li>Integration tests</li>
                             <li>Build artifacts creation</li>
