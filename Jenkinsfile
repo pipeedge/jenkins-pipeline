@@ -249,53 +249,53 @@ print(f'Performance: 1000 additions in {end_time - start_time:.4f} seconds')
             echo 'Pipeline executed successfully!'
             
             // Generate success summary report
-            sh '''
-                echo "=== Build Success Summary ===" > build_summary.txt
-                echo "Job: ${JOB_NAME}" >> build_summary.txt
-                echo "Build Number: ${BUILD_NUMBER}" >> build_summary.txt
-                echo "Build URL: ${BUILD_URL}" >> build_summary.txt
-                echo "Duration: ${currentBuild.durationString}" >> build_summary.txt
-                echo "Status: SUCCESS" >> build_summary.txt
-                echo "All stages completed successfully!" >> build_summary.txt
-            '''
+            script {
+                def duration = currentBuild.durationString
+                sh """
+                    echo "=== Build Success Summary ===" > build_summary.txt
+                    echo "Job: ${JOB_NAME}" >> build_summary.txt
+                    echo "Build Number: ${BUILD_NUMBER}" >> build_summary.txt
+                    echo "Build URL: ${BUILD_URL}" >> build_summary.txt
+                    echo "Duration: ${duration}" >> build_summary.txt
+                    echo "Status: SUCCESS" >> build_summary.txt
+                    echo "All stages completed successfully!" >> build_summary.txt
+                """
+            }
             archiveArtifacts artifacts: 'build_summary.txt', allowEmptyArchive: true
             
-            // Send success notification
+            // Save reports locally instead of sending email
             script {
-                echo 'Sending success notification...'
-                emailext (
-                    subject: "SUCCESS: ${JOB_NAME} - Build #${BUILD_NUMBER}",
-                    body: """
-                        <h2>Pipeline Execution Successful!</h2>
-                        <p><strong>Job:</strong> ${JOB_NAME}</p>
-                        <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                        <p><strong>Branch:</strong> ${env.BRANCH_NAME ?: 'N/A'}</p>
-                        <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                        <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
-                        <br>
-                        <p>All stages completed successfully including:</p>
-                        <ul>
-                            <li>Code quality checks (Black, MyPy)</li>
-                            <li>Unit tests with coverage</li>
-                            <li>Integration tests</li>
-                            <li>Build artifacts creation</li>
-                            <li>Application execution</li>
-                            <li>Report generation</li>
-                        </ul>
-                        <br>
-                        <p>Reports available in build artifacts:</p>
-                        <ul>
-                            <li>Test Report (HTML)</li>
-                            <li>Coverage Report (HTML)</li>
-                            <li>Performance Report</li>
-                            <li>Build Summary</li>
-                        </ul>
-                        <br>
-                        <p>This is an automated notification from Jenkins Pipeline.</p>
-                    """,
-                    to: "yuanliangyyy@gmail.com",
-                    mimeType: "text/html"
-                )
+                def duration = currentBuild.durationString
+                def timestamp = new Date().format("yyyy-MM-dd_HH-mm-ss")
+                def localReportDir = "/tmp/jenkins-reports/${JOB_NAME}/${BUILD_NUMBER}_${timestamp}"
+                
+                sh """
+                    echo 'Saving reports locally...'
+                    mkdir -p ${localReportDir}
+                    
+                    # Copy all reports to local directory
+                    cp -r *.html ${localReportDir}/ 2>/dev/null || echo "No HTML reports to copy"
+                    cp -r *.txt ${localReportDir}/ 2>/dev/null || echo "No text reports to copy"
+                    cp -r htmlcov ${localReportDir}/ 2>/dev/null || echo "No coverage reports to copy"
+                    cp -r dist ${localReportDir}/ 2>/dev/null || echo "No dist files to copy"
+                    
+                    # Create a summary file
+                    echo "=== Jenkins Build Report ===" > ${localReportDir}/jenkins_summary.txt
+                    echo "Job: ${JOB_NAME}" >> ${localReportDir}/jenkins_summary.txt
+                    echo "Build Number: ${BUILD_NUMBER}" >> ${localReportDir}/jenkins_summary.txt
+                    echo "Build URL: ${BUILD_URL}" >> ${localReportDir}/jenkins_summary.txt
+                    echo "Duration: ${duration}" >> ${localReportDir}/jenkins_summary.txt
+                    echo "Status: SUCCESS" >> ${localReportDir}/jenkins_summary.txt
+                    echo "Timestamp: ${timestamp}" >> ${localReportDir}/jenkins_summary.txt
+                    echo "Local Report Directory: ${localReportDir}" >> ${localReportDir}/jenkins_summary.txt
+                    echo "" >> ${localReportDir}/jenkins_summary.txt
+                    echo "Reports saved locally at: ${localReportDir}" >> ${localReportDir}/jenkins_summary.txt
+                    echo "Available reports:" >> ${localReportDir}/jenkins_summary.txt
+                    ls -la ${localReportDir}/ >> ${localReportDir}/jenkins_summary.txt
+                    
+                    echo "Reports saved to: ${localReportDir}"
+                    echo "Summary file: ${localReportDir}/jenkins_summary.txt"
+                """
             }
         }
         
@@ -303,48 +303,52 @@ print(f'Performance: 1000 additions in {end_time - start_time:.4f} seconds')
             echo 'Pipeline execution failed!'
             
             // Generate failure report
-            sh '''
-                echo "=== Build Failure Report ===" > failure_report.txt
-                echo "Job: ${JOB_NAME}" >> failure_report.txt
-                echo "Build Number: ${BUILD_NUMBER}" >> failure_report.txt
-                echo "Build URL: ${BUILD_URL}" >> failure_report.txt
-                echo "Duration: ${currentBuild.durationString}" >> failure_report.txt
-                echo "Status: FAILED" >> failure_report.txt
-                echo "Failed at: $(date)" >> failure_report.txt
-            '''
+            script {
+                def duration = currentBuild.durationString
+                sh """
+                    echo "=== Build Failure Report ===" > failure_report.txt
+                    echo "Job: ${JOB_NAME}" >> failure_report.txt
+                    echo "Build Number: ${BUILD_NUMBER}" >> failure_report.txt
+                    echo "Build URL: ${BUILD_URL}" >> failure_report.txt
+                    echo "Duration: ${duration}" >> failure_report.txt
+                    echo "Status: FAILED" >> failure_report.txt
+                    echo "Failed at: \$(date)" >> failure_report.txt
+                """
+            }
             archiveArtifacts artifacts: 'failure_report.txt', allowEmptyArchive: true
             
-            // Send failure notification
+            // Save failure reports locally instead of sending email
             script {
-                echo 'Sending failure notification...'
-                emailext (
-                    subject: "FAILURE: ${JOB_NAME} - Build #${BUILD_NUMBER}",
-                    body: """
-                        <h2>Pipeline Execution Failed!</h2>
-                        <p><strong>Job:</strong> ${JOB_NAME}</p>
-                        <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                        <p><strong>Branch:</strong> ${env.BRANCH_NAME ?: 'N/A'}</p>
-                        <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                        <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
-                        <br>
-                        <p><strong>Failed Stage:</strong> ${currentBuild.description ?: 'Unknown'}</p>
-                        <br>
-                        <p>Please check the Jenkins console output for detailed error information.</p>
-                        <p>Common failure points:</p>
-                        <ul>
-                            <li>Code quality checks (Black, MyPy)</li>
-                            <li>Unit tests</li>
-                            <li>Integration tests</li>
-                            <li>Build artifacts creation</li>
-                            <li>Application execution</li>
-                            <li>Report generation</li>
-                        </ul>
-                        <br>
-                        <p>This is an automated notification from Jenkins Pipeline.</p>
-                    """,
-                    to: "yuanliang531@outlook.com",
-                    mimeType: "text/html"
-                )
+                def duration = currentBuild.durationString
+                def timestamp = new Date().format("yyyy-MM-dd_HH-mm-ss")
+                def localReportDir = "/tmp/jenkins-reports/${JOB_NAME}/${BUILD_NUMBER}_${timestamp}_FAILED"
+                
+                sh """
+                    echo 'Saving failure reports locally...'
+                    mkdir -p ${localReportDir}
+                    
+                    # Copy failure reports to local directory
+                    cp -r *.html ${localReportDir}/ 2>/dev/null || echo "No HTML reports to copy"
+                    cp -r *.txt ${localReportDir}/ 2>/dev/null || echo "No text reports to copy"
+                    cp -r htmlcov ${localReportDir}/ 2>/dev/null || echo "No coverage reports to copy"
+                    
+                    # Create a failure summary file
+                    echo "=== Jenkins Build Failure Report ===" > ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Job: ${JOB_NAME}" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Build Number: ${BUILD_NUMBER}" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Build URL: ${BUILD_URL}" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Duration: ${duration}" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Status: FAILED" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Timestamp: ${timestamp}" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Local Report Directory: ${localReportDir}" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Failure reports saved locally at: ${localReportDir}" >> ${localReportDir}/jenkins_failure_summary.txt
+                    echo "Available reports:" >> ${localReportDir}/jenkins_failure_summary.txt
+                    ls -la ${localReportDir}/ >> ${localReportDir}/jenkins_failure_summary.txt
+                    
+                    echo "Failure reports saved to: ${localReportDir}"
+                    echo "Failure summary file: ${localReportDir}/jenkins_failure_summary.txt"
+                """
             }
         }
         
