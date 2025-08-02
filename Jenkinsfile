@@ -35,9 +35,9 @@ pipeline {
             }
         }
         
-        stage('Setup Environment') {
+        stage('Setup Python Virtual Environment') {
             steps {
-                echo 'Setting up Python environment...'
+                echo 'Setting up Python virtual environment and installing dependencies...'
                 sh '''
                     echo "Python version:"
                     python3 --version
